@@ -900,12 +900,12 @@ button{border:0;cursor:pointer}
 
       <div class="form-heading">
 
-        <div class="eyebrow">Portal Petugas</div>
+        <div class="eyebrow" id="loginEyebrow">Portal Petugas / Siswa</div>
 
         <h2>Selamat Datang 👋</h2>
 
-        <p>
-          Silakan masuk untuk mengelola sistem absensi sekolah.
+        <p id="loginDescription">
+          Admin/petugas masuk untuk mengelola absensi. Siswa masuk dengan NIS dan password mutabaah.
         </p>
 
       </div>
@@ -919,8 +919,8 @@ button{border:0;cursor:pointer}
           <input
             id="username"
             autocomplete="username"
-            value="admin"
-            placeholder="Masukkan username"
+            value=""
+            placeholder="Username admin atau NIS siswa"
             required>
 
         </div>
@@ -935,7 +935,7 @@ button{border:0;cursor:pointer}
               id="password"
               type="password"
               autocomplete="current-password"
-              value="admin123"
+              value=""
               placeholder="Masukkan password"
               required>
 
@@ -960,6 +960,9 @@ button{border:0;cursor:pointer}
       </form>
 
       <div id="loginMsg"></div>
+      <div style="margin-top:12px;text-align:center;font-size:12px;color:#64748b">
+        Siswa belum punya akun? Hubungi admin sekolah untuk dibuatkan akun.
+      </div>
 
       <div class="security-note">
         🛡️
@@ -978,6 +981,60 @@ button{border:0;cursor:pointer}
 
 </div>
 
+
+
+<!-- ================= STUDENT MUTABAAH VIEW ================= -->
+<div id="studentView" class="hidden">
+  <header class="topbar">
+    <div class="brand">
+      <img src="logo-alhusna.png" onerror="this.style.display='none'" alt="Logo">
+      <div> MUTABAAH YAUMIYAH<br><small>SMPIT AL-HUSNA • 2026/2027</small></div>
+    </div>
+    <div class="top-right"><span id="studentIdentity"></span><button class="logout" onclick="logout()">Keluar</button></div>
+  </header>
+  <main class="content" style="max-width:1100px;margin:auto">
+    <div class="page-head">
+      <div><h2>Catatan Mutabaah Harian</h2><p class="muted">Isi dengan jujur sebagai sarana pembiasaan dan refleksi diri.</p></div>
+      <div class="toolbar"><label for="studentMutDate">Tanggal</label><input type="date" id="studentMutDate" onchange="loadStudentMutabaah()"></div>
+    </div>
+    <form id="studentMutForm" class="panel">
+      <h3>1. Sholat Harian</h3>
+      <div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(145px,1fr))">
+        <div class="field"><label>Dhuha</label><select id="m_DHUHA"><option value="">Pilih status</option><option value="YA">Sudah</option><option value="BELUM">Belum</option><option value="UZUR">Uzur / tidak berlaku</option></select></div>
+        <div class="field"><label>Dzuhur</label><select id="m_DZUHUR"><option value="">Pilih status</option><option value="YA">Sudah</option><option value="BELUM">Belum</option><option value="UZUR">Uzur / tidak berlaku</option></select></div>
+        <div class="field"><label>Ashar</label><select id="m_ASHAR"><option value="">Pilih status</option><option value="YA">Sudah</option><option value="BELUM">Belum</option><option value="UZUR">Uzur / tidak berlaku</option></select></div>
+        <div class="field"><label>Maghrib</label><select id="m_MAGHRIB"><option value="">Pilih status</option><option value="YA">Sudah</option><option value="BELUM">Belum</option><option value="UZUR">Uzur / tidak berlaku</option></select></div>
+        <div class="field"><label>Isya</label><select id="m_ISYA"><option value="">Pilih status</option><option value="YA">Sudah</option><option value="BELUM">Belum</option><option value="UZUR">Uzur / tidak berlaku</option></select></div>
+        <div class="field"><label>Subuh</label><select id="m_SUBUH"><option value="">Pilih status</option><option value="YA">Sudah</option><option value="BELUM">Belum</option><option value="UZUR">Uzur / tidak berlaku</option></select></div>
+      </div>
+      <h3>2. Tadarus Al-Qur'an</h3>
+      <div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+        <div class="field"><label>Nama Surah</label><input id="m_surah" placeholder="Contoh: Al-Baqarah"></div>
+        <div class="field"><label>Ayat mulai</label><input id="m_ayatMulai" inputmode="numeric" placeholder="1"></div>
+        <div class="field"><label>Ayat selesai</label><input id="m_ayatSelesai" inputmode="numeric" placeholder="10"></div>
+      </div>
+      <h3>3. Tujuh Kebiasaan Anak Indonesia Hebat</h3>
+      <div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">
+        <div class="field"><label>Bangun pagi</label><select id="m_BANGUN_PAGI"><option value="">Pilih status</option><option value="YA">Sudah dilakukan</option><option value="BELUM">Belum dilakukan</option></select></div>
+        <div class="field"><label>Beribadah</label><select id="m_BERIBADAH"><option value="">Pilih status</option><option value="YA">Sudah dilakukan</option><option value="BELUM">Belum dilakukan</option></select></div>
+        <div class="field"><label>Berolahraga</label><select id="m_OLAHRAGA"><option value="">Pilih status</option><option value="YA">Sudah dilakukan</option><option value="BELUM">Belum dilakukan</option></select></div>
+        <div class="field"><label>Makan sehat dan bergizi</label><select id="m_MAKAN_SEHAT"><option value="">Pilih status</option><option value="YA">Sudah dilakukan</option><option value="BELUM">Belum dilakukan</option></select></div>
+        <div class="field"><label>Gemar belajar</label><select id="m_GEMAR_BELAJAR"><option value="">Pilih status</option><option value="YA">Sudah dilakukan</option><option value="BELUM">Belum dilakukan</option></select></div>
+        <div class="field"><label>Bermasyarakat</label><select id="m_BERMASYARAKAT"><option value="">Pilih status</option><option value="YA">Sudah dilakukan</option><option value="BELUM">Belum dilakukan</option></select></div>
+        <div class="field"><label>Tidur cepat</label><select id="m_TIDUR_CEPAT"><option value="">Pilih status</option><option value="YA">Sudah dilakukan</option><option value="BELUM">Belum dilakukan</option></select></div>
+      </div>
+      <h3>4. Catatan Amal Saleh dan Refleksi</h3>
+      <div class="field"><label>Amal saleh yang dilakukan hari ini</label><textarea id="m_amalShalih" rows="3" style="width:100%;padding:12px;border:1px solid #d0d5dd;border-radius:10px" placeholder="Contoh: membantu orang tua, menjaga kebersihan, berkata jujur..."></textarea></div>
+      <div class="field"><label>Refleksi / hal yang ingin diperbaiki</label><textarea id="m_refleksi" rows="3" style="width:100%;padding:12px;border:1px solid #d0d5dd;border-radius:10px" placeholder="Apa yang sudah baik dan apa yang ingin diperbaiki besok?"></textarea></div>
+      <div class="toolbar"><button type="submit" class="btn primary" id="saveMutBtn">Simpan Mutabaah</button><button type="button" class="btn secondary" onclick="loadStudentMutabaah()">Muat Ulang</button></div>
+      <div id="studentMutMsg" aria-live="polite"></div>
+    </form>
+    <section class="panel">
+      <h3>Riwayat Pengisian</h3>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Tanggal</th><th>Sholat terisi</th><th>Surah</th><th>Amal saleh</th></tr></thead><tbody id="studentMutHistory"><tr><td colspan="4">Belum ada riwayat.</td></tr></tbody></table></div>
+    </section>
+  </main>
+</div>
 
 <!-- ================= APP ================= -->
 
@@ -1054,6 +1111,9 @@ button{border:0;cursor:pointer}
       onclick="showPage('qr')">
       🔳 Cetak QR
     </button>
+    <button data-page="mutabaah" onclick="showPage('mutabaah');loadMutabaahMonitor()">
+      🌙 Mutabaah Yaumiyah
+    </button>
 
   </div>
 
@@ -1062,6 +1122,32 @@ button{border:0;cursor:pointer}
 
 <main class="content">
 
+
+
+<!-- ================= MUTABAAH ADMIN ================= -->
+<section id="page-mutabaah" class="page">
+  <div class="page-head">
+    <h2>🌙 Pemantauan Mutabaah Yaumiyah</h2>
+    <div class="toolbar">
+      <input type="date" id="mutAdminDate">
+      <input id="mutAdminKelas" placeholder="Filter kelas (opsional)">
+      <button class="btn primary" onclick="loadMutabaahMonitor()">Tampilkan</button>
+    </div>
+  </div>
+  <div class="cards" style="grid-template-columns:repeat(3,minmax(120px,1fr))">
+    <div class="card stat"><div class="label">TOTAL SISWA</div><div class="num" id="mutTotal">0</div></div>
+    <div class="card stat"><div class="label">SUDAH MENGISI</div><div class="num" id="mutFilled">0</div></div>
+    <div class="card stat"><div class="label">BELUM MENGISI</div><div class="num" id="mutMissing">0</div></div>
+  </div>
+  <div class="panel">
+    <h3>Rekap pengisian</h3>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>Status</th><th>Ringkasan</th><th>Evaluasi / Catatan</th></tr></thead>
+      <tbody id="mutAdminBody"><tr><td colspan="6">Pilih tanggal lalu klik Tampilkan.</td></tr></tbody>
+    </table></div>
+  </div>
+  <p class="muted" style="font-size:12px">Evaluasi digunakan untuk pembinaan yang mendidik. Hindari mempermalukan siswa atau membuka catatan pribadi ke siswa lain.</p>
+</section>
 
 <!-- ================= DASHBOARD ================= -->
 
@@ -1504,6 +1590,7 @@ let siswaData = [];
 let guruData = [];
 
 let loginUser = null;
+let mutPassword = '';
 
 let lastScan = '';
 let lastScanAt = 0;
@@ -1821,13 +1908,15 @@ async function login(e){
 
 
     loginUser=d;
-
-    sessionStorage.setItem(
-      'absen_login',
-      JSON.stringify(d)
-    );
-
-    openApp();
+    if (d.role === 'SISWA') {
+      mutPassword=password;
+      sessionStorage.removeItem('absen_login');
+      openStudentApp();
+    } else {
+      mutPassword='';
+      sessionStorage.setItem('absen_login', JSON.stringify(d));
+      openApp();
+    }
 
   }catch(err){
 
@@ -1847,6 +1936,60 @@ async function login(e){
 
 }
 
+
+
+/* ================= STUDENT MUTABAAH APP ================= */
+function openStudentApp(){
+  document.getElementById('loginView').classList.add('hidden');
+  document.getElementById('appView').classList.add('hidden');
+  document.getElementById('studentView').classList.remove('hidden');
+  document.getElementById('studentIdentity').textContent=(loginUser.nama||loginUser.nis)+' • '+(loginUser.kelas||'');
+  document.getElementById('studentMutDate').value=today();
+  loadStudentMutabaah();
+}
+function mutRequest(action, extra={}){
+  return apiRequest(action,{nis:loginUser.nis,password:mutPassword,...extra});
+}
+async function loadStudentMutabaah(){
+  if(!loginUser || loginUser.role!=='SISWA' || !mutPassword) return;
+  const tanggal=document.getElementById('studentMutDate').value||today();
+  try{
+    const d=await mutRequest('mutMine',{tanggal});
+    if(!d.success) throw new Error(d.message||'Gagal memuat mutabaah');
+    const x=d.data||{};
+    const map={DHUHA:'dhuha',DZUHUR:'dzuhur',ASHAR:'ashar',MAGHRIB:'maghrib',ISYA:'isya',SUBUH:'subuh',
+      BANGUN_PAGI:'bangunPagi',BERIBADAH:'beribadah',OLAHRAGA:'olahraga',MAKAN_SEHAT:'makanSehat',
+      GEMAR_BELAJAR:'gemarBelajar',BERMASYARAKAT:'bermasyarakat',TIDUR_CEPAT:'tidurCepat'};
+    Object.keys(map).forEach(k=>{const el=document.getElementById('m_'+k);if(el)el.value=x[map[k]]||'';});
+    ['surah','ayatMulai','ayatSelesai','amalShalih','refleksi'].forEach(k=>{
+      const el=document.getElementById('m_'+k);if(el)el.value=x[k]||'';
+    });
+    const body=document.getElementById('studentMutHistory');
+    body.innerHTML='';
+    (d.history||[]).forEach(h=>{
+      const count=['dhuha','dzuhur','ashar','maghrib','isya','subuh'].filter(k=>h[k]==='YA').length;
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+esc(h.tanggal)+'</td><td>'+count+'/6</td><td>'+esc(h.surah||'—')+'</td><td>'+esc(h.amalShalih||'—')+'</td>';
+      body.appendChild(tr);
+    });
+    if(!(d.history||[]).length)body.innerHTML='<tr><td colspan="4">Belum ada riwayat.</td></tr>';
+    document.getElementById('studentMutMsg').innerHTML=x.id?'<div class="alert ok">Data tanggal ini sudah pernah disimpan; Anda dapat memperbaruinya.</div>':'';
+  }catch(e){document.getElementById('studentMutMsg').innerHTML='<div class="alert error">'+esc(e.message||String(e))+'</div>';}
+}
+document.getElementById('studentMutForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  const btn=document.getElementById('saveMutBtn');btn.disabled=true;btn.textContent='Menyimpan...';
+  const payload={tanggal:document.getElementById('studentMutDate').value||today()};
+  ['DHUHA','DZUHUR','ASHAR','MAGHRIB','ISYA','SUBUH','BANGUN_PAGI','BERIBADAH','OLAHRAGA','MAKAN_SEHAT','GEMAR_BELAJAR','BERMASYARAKAT','TIDUR_CEPAT'].forEach(k=>payload[k]=document.getElementById('m_'+k).value);
+  ['surah','ayatMulai','ayatSelesai','amalShalih','refleksi'].forEach(k=>payload[k]=document.getElementById('m_'+k).value.trim());
+  try{
+    const d=await mutRequest('mutSave',payload);
+    if(!d.success)throw new Error(d.message||'Gagal menyimpan');
+    document.getElementById('studentMutMsg').innerHTML='<div class="alert ok">'+esc(d.message)+'</div>';
+    loadStudentMutabaah();
+  }catch(err){document.getElementById('studentMutMsg').innerHTML='<div class="alert error">'+esc(err.message||String(err))+'</div>';}
+  finally{btn.disabled=false;btn.textContent='Simpan Mutabaah';}
+});
 
 /* =========================================================
    OPEN APP
@@ -1894,6 +2037,8 @@ function logout(){
   );
 
   loginUser=null;
+  mutPassword='';
+  document.getElementById('studentView').classList.add('hidden');
 
   document
     .getElementById('appView')
@@ -1922,7 +2067,7 @@ function restore(){
       );
 
 
-    if(d?.success){
+    if(d?.success && d.role !== 'SISWA'){
 
       loginUser=d;
 
@@ -3552,6 +3697,44 @@ if(
 
 }
 
+
+
+/* ================= MUTABAAH ADMIN UI ================= */
+function loadMutabaahMonitor(){
+  const dateEl=document.getElementById('mutAdminDate');
+  if(!dateEl) return;
+  if(!dateEl.value) dateEl.value=today();
+  apiRequest('mutMonitor',{tanggal:dateEl.value,kelas:document.getElementById('mutAdminKelas').value.trim()})
+    .then(d=>{
+      if(!d.success) throw new Error(d.message||'Gagal memuat data mutabaah');
+      document.getElementById('mutTotal').textContent=d.totalSiswa||0;
+      document.getElementById('mutFilled').textContent=d.terisi||0;
+      document.getElementById('mutMissing').textContent=d.belumIsi||0;
+      const body=document.getElementById('mutAdminBody');
+      body.innerHTML='';
+      (d.data||[]).forEach(s=>{
+        const tr=document.createElement('tr');
+        const status=s.terisi?'Sudah mengisi':'Belum mengisi';
+        const data=s.data||{};
+        const ringkas=s.terisi
+          ? 'Sholat terisi: '+['dhuha','dzuhur','ashar','maghrib','isya','subuh'].filter(k=>data[k]==='YA').length+'/6; tadarus: '+(data.surah||'—')
+          : 'Belum ada catatan pada tanggal ini';
+        tr.innerHTML='<td>'+esc(s.nis)+'</td><td>'+esc(s.nama)+'</td><td>'+esc(s.kelas)+'</td><td><span class="badge">'+esc(status)+'</span></td><td>'+esc(ringkas)+'</td><td><button class="btn secondary" onclick="addMutabaahNote('+JSON.stringify(String(s.nis))+')">Catat evaluasi</button></td>';
+        body.appendChild(tr);
+      });
+      if(!(d.data||[]).length) body.innerHTML='<tr><td colspan="6">Tidak ada data siswa untuk filter ini.</td></tr>';
+    }).catch(e=>{
+      document.getElementById('mutAdminBody').innerHTML='<tr><td colspan="6">'+esc(e.message||String(e))+'</td></tr>';
+    });
+}
+function addMutabaahNote(nis){
+  const catatan=prompt('Catatan evaluasi/pembinaan untuk NIS '+nis+':');
+  if(!catatan) return;
+  const tindakLanjut=prompt('Tindak lanjut yang disepakati (opsional):')||'';
+  apiRequest('mutNote',{nis, tanggal:document.getElementById('mutAdminDate').value||today(),
+    jenis:'EVALUASI KELALAIAN / PEMBINAAN',catatan,tindakLanjut,admin:loginUser?.username||'Admin'})
+    .then(d=>alert(d.message||'Selesai')).catch(e=>alert(e.message||String(e)));
+}
 
 /* =========================================================
    RESTORE

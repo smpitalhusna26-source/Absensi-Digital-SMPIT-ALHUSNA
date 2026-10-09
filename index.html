@@ -3825,10 +3825,14 @@ function saveMutAccount(event){
   const msg=document.getElementById('mutAccountFormMessage');
   if(password.length<8){msg.textContent='Kata sandi minimal 8 karakter.';return;}
   if(password!==password2){msg.textContent='Kata sandi dan konfirmasi tidak sama.';return;}
-  msg.textContent='Menyimpan akun...';
-  apiRequest('saveStudentAccount',{nis,password})
+  if(!nis){msg.textContent='Masukkan NIS siswa.';return;}
+  const btn=document.querySelector('#mutAccountForm button[type=submit]');
+  if(btn)btn.disabled=true;
+  msg.textContent='Menyimpan akun ke database...';
+  apiRequest('mutSetPassword',{nis,password})
     .then(d=>{if(!d?.success)throw new Error(d?.message||'Gagal menyimpan akun.');msg.textContent=d.message||'Akun berhasil disimpan.';document.getElementById('mutAccountPassword').value='';document.getElementById('mutAccountPassword2').value='';loadMutAccounts();})
-    .catch(e=>{msg.textContent=e.message||String(e);});
+    .catch(e=>{msg.textContent='Gagal menyimpan: '+(e.message||String(e));})
+    .finally(()=>{if(btn)btn.disabled=false;});
 }
 function saveEvaluationNote(event){
   event.preventDefault();
@@ -3840,10 +3844,13 @@ function saveEvaluationNote(event){
   const msg=document.getElementById('evalFormMessage');
   if(!nis||!catatan){msg.textContent='NIS dan catatan evaluasi wajib diisi.';return;}
   if(!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)){msg.textContent='Tanggal evaluasi tidak valid.';return;}
-  msg.textContent='Menyimpan catatan...';
-  apiRequest('saveEvaluation',{tanggal,nis,jenis,catatan,tindakLanjut,admin:loginUser?.username||'Admin'})
+  const btn=document.querySelector('#evaluationForm button[type=submit]');
+  if(btn)btn.disabled=true;
+  msg.textContent='Menyimpan catatan ke database...';
+  apiRequest('mutNote',{tanggal,nis,jenis,catatan,tindakLanjut,admin:loginUser?.username||'Admin'})
     .then(d=>{if(!d?.success)throw new Error(d?.message||'Gagal menyimpan catatan.');msg.textContent=d.message||'Catatan berhasil disimpan.';document.getElementById('evaluationForm').reset();document.getElementById('evalInputDate').value=today();if(document.getElementById('evalDateFilter'))document.getElementById('evalDateFilter').value=tanggal;loadEvaluationNotes();})
-    .catch(e=>{msg.textContent=e.message||String(e);});
+    .catch(e=>{msg.textContent='Gagal menyimpan: '+(e.message||String(e));})
+    .finally(()=>{if(btn)btn.disabled=false;});
 }
 
 function weekdayDate(value){

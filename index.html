@@ -1114,6 +1114,12 @@ button{border:0;cursor:pointer}
     <button data-page="mutabaah" onclick="showPage('mutabaah');loadMutabaahMonitor()">
       🌙 Mutabaah Yaumiyah
     </button>
+    <button data-page="akunSiswa" onclick="showPage('akunSiswa')">
+      🔐 Akun Siswa
+    </button>
+    <button data-page="evaluasi" onclick="showPage('evaluasi')">
+      📝 Catatan Evaluasi
+    </button>
 
   </div>
 
@@ -1147,6 +1153,56 @@ button{border:0;cursor:pointer}
     </table></div>
   </div>
   <p class="muted" style="font-size:12px">Evaluasi digunakan untuk pembinaan yang mendidik. Hindari mempermalukan siswa atau membuka catatan pribadi ke siswa lain.</p>
+</section>
+
+<!-- ================= MANAJEMEN AKUN SISWA ================= -->
+<section id="page-akunSiswa" class="page">
+  <div class="page-head">
+    <h2>🔐 Manajemen Akun Siswa</h2>
+    <div class="toolbar">
+      <input id="accountSearch" placeholder="Cari NIS atau nama" oninput="renderMutAccounts()">
+      <input id="accountClass" placeholder="Filter kelas" oninput="renderMutAccounts()">
+      <button class="btn secondary" onclick="syncMutAccounts()">Sinkronkan akun</button>
+      <button class="btn primary" onclick="loadMutAccounts()">Muat ulang</button>
+    </div>
+  </div>
+  <div class="cards" style="grid-template-columns:repeat(3,minmax(120px,1fr))">
+    <div class="card stat"><div class="label">TOTAL SISWA</div><div class="num" id="accountTotal">0</div></div>
+    <div class="card stat"><div class="label">AKUN SIAP LOGIN</div><div class="num" id="accountReady">0</div></div>
+    <div class="card stat"><div class="label">PERLU PASSWORD</div><div class="num" id="accountPending">0</div></div>
+  </div>
+  <div class="panel">
+    <h3>Daftar akun siswa</h3>
+    <p class="muted" style="font-size:13px">Daftar ini menampilkan status akun tanpa membuka hash atau kata sandi siswa. Status “Perlu password” berarti akun belum dapat digunakan untuk login.</p>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>Status Akun</th><th>Aktif</th></tr></thead>
+      <tbody id="accountBody"><tr><td colspan="5">Klik Muat ulang untuk memuat data.</td></tr></tbody>
+    </table></div>
+  </div>
+  <div class="panel">
+    <h3>Petunjuk pembuatan kata sandi</h3>
+    <p>Gunakan fungsi <code>buatAkunMutabaahSemuaSiswa()</code> di editor Google Apps Script untuk membuat akun dan kata sandi awal bagi siswa yang belum memilikinya. Bagikan kata sandi secara pribadi, batasi akses sheet kredensial, lalu hapus sheet sementara setelah selesai.</p>
+  </div>
+</section>
+
+<!-- ================= CATATAN EVALUASI ================= -->
+<section id="page-evaluasi" class="page">
+  <div class="page-head">
+    <h2>📝 Catatan Evaluasi dan Pembinaan</h2>
+    <div class="toolbar">
+      <input type="date" id="evalDateFilter" aria-label="Filter tanggal evaluasi">
+      <input id="evalClassFilter" placeholder="Filter kelas (opsional)">
+      <button class="btn primary" onclick="loadEvaluationNotes()">Tampilkan</button>
+      <button class="btn secondary" onclick="loadEvaluationNotes(true)">Semua tanggal</button>
+    </div>
+  </div>
+  <div class="panel">
+    <p class="muted" style="font-size:13px">Tanggal ditampilkan bersama nama hari berdasarkan zona waktu sekolah (Asia/Jakarta). Catatan digunakan untuk pembinaan yang mendidik dan harus dijaga kerahasiaannya.</p>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Hari dan Tanggal</th><th>NIS</th><th>Nama</th><th>Kelas</th><th>Jenis Catatan</th><th>Evaluasi</th><th>Tindak Lanjut</th><th>Admin</th></tr></thead>
+      <tbody id="evaluationBody"><tr><td colspan="8">Klik Tampilkan untuk memuat catatan evaluasi.</td></tr></tbody>
+    </table></div>
+  </div>
 </section>
 
 <!-- ================= DASHBOARD ================= -->
@@ -2132,6 +2188,12 @@ function showPage(name){
 
   if(name==='rekap')
     loadRekap();
+
+  if(name==='akunSiswa')
+    loadMutAccounts();
+
+  if(name==='evaluasi')
+    loadEvaluationNotes();
 
   if(name==='qr')
     loadQrCards();
@@ -3699,6 +3761,67 @@ if(
 
 
 
+/* ================= AKUN SISWA & RIWAYAT EVALUASI ================= */
+let mutAccountRows=[];
+function loadMutAccounts(){
+  const body=document.getElementById('accountBody');
+  if(!body)return;
+  body.innerHTML='<tr><td colspan="5">Memuat data akun siswa...</td></tr>';
+  apiRequest('mutAccounts',{})
+    .then(d=>{
+      if(!d || !d.success) throw new Error(d?.message||'Gagal memuat akun siswa.');
+      mutAccountRows=d.data||[];
+      document.getElementById('accountTotal').textContent=d.total||mutAccountRows.length;
+      document.getElementById('accountReady').textContent=d.siappLogin||0;
+      document.getElementById('accountPending').textContent=d.perluPassword||0;
+      renderMutAccounts();
+    }).catch(e=>{body.innerHTML='<tr><td colspan="5">'+esc(e.message||String(e))+'</td></tr>';});
+}
+function renderMutAccounts(){
+  const body=document.getElementById('accountBody'); if(!body)return;
+  const q=(document.getElementById('accountSearch')?.value||'').trim().toLowerCase();
+  const k=(document.getElementById('accountClass')?.value||'').trim().toLowerCase();
+  const rows=mutAccountRows.filter(s=>(!q||String(s.nis||'').toLowerCase().includes(q)||String(s.nama||'').toLowerCase().includes(q))&&(!k||String(s.kelas||'').toLowerCase().includes(k)));
+  body.innerHTML='';
+  rows.forEach(s=>{
+    const tr=document.createElement('tr');
+    const status=s.status==='SIAP'?'Siap login':s.status==='PASSWORD'?'Perlu password':s.status==='NONAKTIF'?'Nonaktif':'Akun belum dibuat';
+    tr.innerHTML='<td>'+esc(s.nis)+'</td><td>'+esc(s.nama)+'</td><td>'+esc(s.kelas)+'</td><td><span class="badge">'+esc(status)+'</span></td><td>'+esc(s.aktif||'YA')+'</td>';
+    body.appendChild(tr);
+  });
+  if(!rows.length)body.innerHTML='<tr><td colspan="5">Tidak ada akun yang cocok dengan pencarian.</td></tr>';
+}
+function syncMutAccounts(){
+  if(!confirm('Sinkronkan daftar akun dengan data siswa? Proses ini tidak membuat atau menampilkan kata sandi.'))return;
+  apiRequest('mutSetupAccounts',{})
+    .then(d=>{if(!d?.success)throw new Error(d?.message||'Sinkronisasi gagal.');alert(d.message||'Sinkronisasi selesai.');loadMutAccounts();})
+    .catch(e=>alert(e.message||String(e)));
+}
+function weekdayDate(value){
+  if(!value)return '—';
+  const parts=String(value).slice(0,10).split('-');
+  if(parts.length!==3)return value;
+  const dt=new Date(Number(parts[0]),Number(parts[1])-1,Number(parts[2]));
+  return new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).format(dt);
+}
+function loadEvaluationNotes(allDates=false){
+  const body=document.getElementById('evaluationBody'); if(!body)return;
+  body.innerHTML='<tr><td colspan="8">Memuat catatan evaluasi...</td></tr>';
+  const tanggal=allDates?'':(document.getElementById('evalDateFilter')?.value||'');
+  const kelas=(document.getElementById('evalClassFilter')?.value||'').trim();
+  apiRequest('mutNotes',{tanggal,kelas})
+    .then(d=>{
+      if(!d?.success)throw new Error(d?.message||'Gagal memuat catatan evaluasi.');
+      const rows=d.data||[]; body.innerHTML='';
+      rows.forEach(n=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML='<td>'+esc(weekdayDate(n.tanggal))+'</td><td>'+esc(n.nis)+'</td><td>'+esc(n.nama)+'</td><td>'+esc(n.kelas)+'</td><td>'+esc(n.jenis)+'</td><td style="white-space:pre-wrap">'+esc(n.catatan)+'</td><td style="white-space:pre-wrap">'+esc(n.tindakLanjut||'—')+'</td><td>'+esc(n.admin||'—')+'</td>';
+        body.appendChild(tr);
+      });
+      if(!rows.length)body.innerHTML='<tr><td colspan="8">Belum ada catatan evaluasi untuk filter ini.</td></tr>';
+    }).catch(e=>{body.innerHTML='<tr><td colspan="8">'+esc(e.message||String(e))+'</td></tr>';});
+}
+
 /* ================= MUTABAAH ADMIN UI ================= */
 function loadMutabaahMonitor(){
   const dateEl=document.getElementById('mutAdminDate');
@@ -3733,7 +3856,8 @@ function addMutabaahNote(nis){
   const tindakLanjut=prompt('Tindak lanjut yang disepakati (opsional):')||'';
   apiRequest('mutNote',{nis, tanggal:document.getElementById('mutAdminDate').value||today(),
     jenis:'EVALUASI KELALAIAN / PEMBINAAN',catatan,tindakLanjut,admin:loginUser?.username||'Admin'})
-    .then(d=>alert(d.message||'Selesai')).catch(e=>alert(e.message||String(e)));
+    .then(d=>{if(!d?.success)throw new Error(d?.message||'Gagal menyimpan catatan.');alert(d.message||'Selesai');loadMutabaahMonitor();loadEvaluationNotes();})
+    .catch(e=>alert(e.message||String(e)));
 }
 
 /* =========================================================

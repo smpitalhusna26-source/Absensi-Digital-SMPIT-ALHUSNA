@@ -1180,8 +1180,16 @@ button{border:0;cursor:pointer}
     </table></div>
   </div>
   <div class="panel">
-    <h3>Petunjuk pembuatan kata sandi</h3>
-    <p>Gunakan fungsi <code>buatAkunMutabaahSemuaSiswa()</code> di editor Google Apps Script untuk membuat akun dan kata sandi awal bagi siswa yang belum memilikinya. Bagikan kata sandi secara pribadi, batasi akses sheet kredensial, lalu hapus sheet sementara setelah selesai.</p>
+    <h3>Input / Atur Akun Siswa</h3>
+    <p class="muted" style="font-size:13px">Pilih NIS siswa yang terdaftar, lalu buat atau reset kata sandi. Kata sandi minimal 8 karakter dan tidak ditampilkan kembali setelah disimpan.</p>
+    <form id="mutAccountForm" onsubmit="saveMutAccount(event)" class="form-grid">
+      <label>NIS Siswa<input id="mutAccountNis" required placeholder="Masukkan NIS siswa"></label>
+      <label>Kata Sandi Awal / Baru<input id="mutAccountPassword" type="password" minlength="8" required autocomplete="new-password" placeholder="Minimal 8 karakter"></label>
+      <label>Ulangi Kata Sandi<input id="mutAccountPassword2" type="password" minlength="8" required autocomplete="new-password" placeholder="Ulangi kata sandi"></label>
+      <div class="toolbar"><button class="btn primary" type="submit">Simpan Akun / Reset Password</button></div>
+    </form>
+    <p id="mutAccountFormMessage" class="muted" aria-live="polite"></p>
+    <p class="muted" style="font-size:12px">Catatan keamanan: sebelum dipakai dengan data siswa sungguhan, endpoint perubahan password harus dilindungi otorisasi admin di server.</p>
   </div>
 </section>
 
@@ -1197,7 +1205,16 @@ button{border:0;cursor:pointer}
     </div>
   </div>
   <div class="panel">
+    <h3>Input Catatan Evaluasi Siswa</h3>
     <p class="muted" style="font-size:13px">Tanggal ditampilkan bersama nama hari berdasarkan zona waktu sekolah (Asia/Jakarta). Catatan digunakan untuk pembinaan yang mendidik dan harus dijaga kerahasiaannya.</p>
+    <form id="evaluationForm" onsubmit="saveEvaluationNote(event)" class="form-grid">
+      <label>Tanggal Evaluasi<input id="evalInputDate" type="date" required></label>
+      <label>NIS Siswa<input id="evalInputNis" required placeholder="Masukkan NIS siswa"></label>
+      <label>Jenis Catatan<select id="evalInputType"><option value="PEMBINAAN">Pembinaan</option><option value="KEDISIPLINAN">Kedisiplinan</option><option value="MUTABAAH">Mutabaah Yaumiyah</option><option value="APRESIASI">Apresiasi</option><option value="TINDAK LANJUT">Tindak Lanjut</option></select></label>
+      <label>Catatan Evaluasi<textarea id="evalInputNote" required maxlength="2000" rows="3" placeholder="Tuliskan catatan evaluasi secara jelas dan mendidik"></textarea></label>
+      <label>Tindak Lanjut<textarea id="evalInputFollowup" maxlength="2000" rows="2" placeholder="Rencana tindak lanjut (opsional)"></textarea></label>
+      <div class="toolbar"><button class="btn primary" type="submit">Simpan Catatan Evaluasi</button><span id="evalFormMessage" class="muted" aria-live="polite"></span></div>
+    </form>
     <div class="table-wrap"><table class="table">
       <thead><tr><th>Hari dan Tanggal</th><th>NIS</th><th>Nama</th><th>Kelas</th><th>Jenis Catatan</th><th>Evaluasi</th><th>Tindak Lanjut</th><th>Admin</th></tr></thead>
       <tbody id="evaluationBody"><tr><td colspan="8">Klik Tampilkan untuk memuat catatan evaluasi.</td></tr></tbody>
@@ -2192,8 +2209,11 @@ function showPage(name){
   if(name==='akunSiswa')
     loadMutAccounts();
 
-  if(name==='evaluasi')
+  if(name==='evaluasi'){
+    const d=document.getElementById('evalInputDate'); if(d&&!d.value)d.value=today();
+    const f=document.getElementById('evalDateFilter'); if(f&&!f.value)f.value=today();
     loadEvaluationNotes();
+  }
 
   if(name==='qr')
     loadQrCards();
@@ -3797,6 +3817,34 @@ function syncMutAccounts(){
     .then(d=>{if(!d?.success)throw new Error(d?.message||'Sinkronisasi gagal.');alert(d.message||'Sinkronisasi selesai.');loadMutAccounts();})
     .catch(e=>alert(e.message||String(e)));
 }
+function saveMutAccount(event){
+  event.preventDefault();
+  const nis=(document.getElementById('mutAccountNis').value||'').trim();
+  const password=document.getElementById('mutAccountPassword').value||'';
+  const password2=document.getElementById('mutAccountPassword2').value||'';
+  const msg=document.getElementById('mutAccountFormMessage');
+  if(password.length<8){msg.textContent='Kata sandi minimal 8 karakter.';return;}
+  if(password!==password2){msg.textContent='Kata sandi dan konfirmasi tidak sama.';return;}
+  msg.textContent='Menyimpan akun...';
+  apiRequest('mutSetPassword',{nis,password})
+    .then(d=>{if(!d?.success)throw new Error(d?.message||'Gagal menyimpan akun.');msg.textContent=d.message||'Akun berhasil disimpan.';document.getElementById('mutAccountPassword').value='';document.getElementById('mutAccountPassword2').value='';loadMutAccounts();})
+    .catch(e=>{msg.textContent=e.message||String(e);});
+}
+function saveEvaluationNote(event){
+  event.preventDefault();
+  const tanggal=document.getElementById('evalInputDate').value||today();
+  const nis=(document.getElementById('evalInputNis').value||'').trim();
+  const jenis=document.getElementById('evalInputType').value;
+  const catatan=(document.getElementById('evalInputNote').value||'').trim();
+  const tindakLanjut=(document.getElementById('evalInputFollowup').value||'').trim();
+  const msg=document.getElementById('evalFormMessage');
+  if(!nis||!catatan){msg.textContent='NIS dan catatan evaluasi wajib diisi.';return;}
+  msg.textContent='Menyimpan catatan...';
+  apiRequest('mutSaveNote',{tanggal,nis,jenis,catatan,tindakLanjut,admin:loginUser?.username||'Admin'})
+    .then(d=>{if(!d?.success)throw new Error(d?.message||'Gagal menyimpan catatan.');msg.textContent=d.message||'Catatan berhasil disimpan.';document.getElementById('evaluationForm').reset();document.getElementById('evalInputDate').value=today();if(document.getElementById('evalDateFilter'))document.getElementById('evalDateFilter').value=tanggal;loadEvaluationNotes();})
+    .catch(e=>{msg.textContent=e.message||String(e);});
+}
+
 function weekdayDate(value){
   if(!value)return '—';
   const parts=String(value).slice(0,10).split('-');

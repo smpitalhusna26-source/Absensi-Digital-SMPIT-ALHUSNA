@@ -3250,11 +3250,20 @@ async function addSiswa(){
       );
 
 
-    alert(d.message);
+    if(d.success && d.account){
+      alert(
+        d.message+'\n\nAKUN LOGIN SISWA\nNIS/Username: '+d.account.username+
+        '\nPassword awal: '+d.account.temporaryPassword+
+        '\n\nSalin dan berikan password ini secara pribadi kepada siswa. Password tidak akan ditampilkan lagi. Simpan dengan aman.'
+      );
+    }else{
+      alert(d.message || 'Gagal menambahkan siswa.');
+    }
 
-
-    if(d.success)
+    if(d.success){
       loadSiswa();
+      if(typeof loadMutAccounts==='function') loadMutAccounts();
+    }
 
   }catch(e){
 
@@ -3291,11 +3300,20 @@ async function delSiswa(qr){
       );
 
 
-    alert(d.message);
+    if(d.success && d.account){
+      alert(
+        d.message+'\n\nAKUN LOGIN SISWA\nNIS/Username: '+d.account.username+
+        '\nPassword awal: '+d.account.temporaryPassword+
+        '\n\nSalin dan berikan password ini secara pribadi kepada siswa. Password tidak akan ditampilkan lagi. Simpan dengan aman.'
+      );
+    }else{
+      alert(d.message || 'Gagal menambahkan siswa.');
+    }
 
-
-    if(d.success)
+    if(d.success){
       loadSiswa();
+      if(typeof loadMutAccounts==='function') loadMutAccounts();
+    }
 
   }catch(e){
 

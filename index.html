@@ -1848,13 +1848,22 @@ function apiRequest(action,params={}){
 
       let done = false;
 
-      const query =
-        new URLSearchParams({
-          action,
-          ...params,
-          callback:cb,
-          _:Date.now()
-        });
+      // Semua permintaan admin membawa token sesi server. Endpoint siswa tetap
+      // memvalidasi NIS dan password pada backend.
+      let adminToken = '';
+      if (action !== 'login') {
+        try {
+          const stored = JSON.parse(sessionStorage.getItem('absen_login') || 'null');
+          if (stored && stored.token) adminToken = stored.token;
+        } catch (e) {}
+      }
+      const query = new URLSearchParams({
+        action,
+        ...params,
+        ...(adminToken ? {token:adminToken} : {}),
+        callback:cb,
+        _:Date.now()
+      });
 
       const timer =
         setTimeout(
